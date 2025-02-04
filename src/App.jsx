@@ -8,7 +8,7 @@ console.log(API_KEY);  // For debugging
  
 const PROPERTIES = ['open', 'high', 'low', 'close', 'adjClose', 'volume', 'unadjustedVolume', 'change'];
 
-async function getHistoricalData(ticker) {
+async function getHistoricalData() {
   let data = {};
   let err = null;
 
