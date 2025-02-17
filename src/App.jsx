@@ -88,10 +88,53 @@ const App = () => {
     },
     chart: {
       zooming: { type: 'x' },
+  
+
       events: {
         selection: selectionHandler,
+        load: function () {
+          const chart = this;
+          const series = chart.series[0];
+
+          let startPoint = null;
+          Highcharts.addEvent(chart.container, 'mousedown', (e) => {
+            startPoint = series.searchPoint(chart.pointer.normalize(e));
+            console.log(startPoint);
+          });
+
+          Highcharts.addEvent(chart.container, 'mousemove', (e) => {
+            if (!startPoint) return;
+
+            const point = series.searchPoint(chart.pointer.normalize(e));
+
+            if (!point) return;
+            this.$$delta = ( ( (point.y - startPoint.y) / startPoint.y ) * 100 ).toFixed(2);
+
+            const firstDate = point.x > startPoint.x ? startPoint.x : point.x;
+            const secondDate = point.x < startPoint.x ? startPoint.x : point.x;
+        // build string of date range to show in tooltip while dragging
+        this.$$dateDelta = `${(new Date(firstDate)).toLocaleDateString()} - ${(new Date(secondDate)).toLocaleDateString()}`
+        });
+
+        Highcharts.addEvent(chart.container, 'mouseup', (e) => {
+          this.$$dateDelta = null;
+          this.$$delta = null;
+          startPoint = null;
+        });
       },
     },
+  },
+  tooltip: {
+    formatter: function (tooltip) {
+      const chart = tooltip.chart;
+
+      if (chart.$$delta !== null && chart.$$delta !== undefined) {
+        return `<div>${chart.$$dateDelta}<br /><span>Total: <strong>${chart.$$delta}%</strong></span></div>`;
+      }
+
+      return tooltip.defaultFormatter.call(this, tooltip);
+    }
+  },
     xAxis: {
       type: 'datetime',
     },
